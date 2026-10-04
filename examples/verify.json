@@ -1,0 +1,7 @@
+{
+  "chain": [],
+  "caller_did": "did:agent:worker-c",
+  "tool": "mcp.database",
+  "resource": "db://prod/orders",
+  "action": "read"
+}

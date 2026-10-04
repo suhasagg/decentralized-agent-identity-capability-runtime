@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: agent-capability-runtime}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: agent-capability-runtime}}
+  template:
+    metadata: {labels: {app: agent-capability-runtime}}
+    spec:
+      securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
+      containers:
+      - name: runtime
+        image: example/agent-capability-runtime:latest
+        ports: [{containerPort: 8080}]
+        env:
+        - name: ADMIN_TOKEN
+          valueFrom: {secretKeyRef: {name: agent-capability-runtime, key: admin-token}}
+        readinessProbe: {httpGet: {path: /healthz, port: 8080}, initialDelaySeconds: 2}
+        livenessProbe: {httpGet: {path: /healthz, port: 8080}, initialDelaySeconds: 5}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests: {cpu: "100m", memory: "64Mi"}
+          limits: {cpu: "1", memory: "256Mi"}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: agent-capability-runtime}
+spec:
+  selector: {app: agent-capability-runtime}
+  ports: [{port: 80, targetPort: 8080}]
